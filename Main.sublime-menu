@@ -60,7 +60,8 @@
                         "caption": "Stash",
                         "children":
                         [
-                             { "caption": "Save", "command": "git_raw", "args": { "command": "git stash", "may_change_files": true } }
+                             { "caption": "List", "command": "git_stash_list" }
+                            ,{ "caption": "Save", "command": "git_raw", "args": { "command": "git stash", "may_change_files": true } }
                             ,{ "caption": "Pop", "command": "git_raw", "args": { "command": "git stash pop", "may_change_files": true } }
                             ,{ "caption": "Apply", "command": "git_stash_apply" }
                             ,{ "caption": "Drop", "command": "git_stash_drop" }
