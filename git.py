@@ -71,10 +71,10 @@ def plugin_file(name):
     return PLUGIN_DIRECTORY + '/' + name
 
 
-def do_when(conditional, callback, *args, **kwargs):
+def do_when(conditional, command, *args, **kwargs):
     if conditional():
-        return callback(*args, **kwargs)
-    sublime.set_timeout(functools.partial(do_when, conditional, callback, *args, **kwargs), 50)
+        return command(*args, **kwargs)
+    sublime.set_timeout(functools.partial(do_when, conditional, command, *args, **kwargs), 50)
 
 
 def goto_xy(view, line, col):
@@ -134,6 +134,9 @@ def find_git():
     return git_path
 GIT = find_git()
 
+commands_working = 0
+def are_commands_working():
+    return commands_working != 0
 
 class CommandThread(threading.Thread):
     def __init__(self, command, on_done, working_dir="", fallback_encoding="", **kwargs):
@@ -153,11 +156,15 @@ class CommandThread(threading.Thread):
         self.kwargs = kwargs
 
     def run(self):
-        try:
-            # Ignore directories that no longer exist
-            if not os.path.isdir(self.working_dir):
-                return
+        global commands_working
+        # Ignore directories that no longer exist
+        if not os.path.isdir(self.working_dir):
+            return
 
+        commands_working = commands_working + 1
+        output = ''
+        callback = self.on_done
+        try:
             if self.working_dir != "":
                 os.chdir(self.working_dir)
             # Windows needs startupinfo in order to start process in background
@@ -183,16 +190,18 @@ class CommandThread(threading.Thread):
             output = proc.communicate(self.stdin)[0]
             if not output:
                 output = ''
-
-            main_thread(self.on_done,
-                _make_text_safeish(output, self.fallback_encoding), **self.kwargs)
+            output = _make_text_safeish(output, self.fallback_encoding)
         except subprocess.CalledProcessError as e:
-            main_thread(self.on_done, e.returncode)
+            output = e.returncode
         except OSError as e:
+            callback = sublime.error_message
             if e.errno == 2:
-                main_thread(sublime.error_message, "Git binary could not be found in PATH\n\nConsider using the git_command setting for the Git plugin\n\nPATH is: %s" % os.environ['PATH'])
+                output = "Git binary could not be found in PATH\n\nConsider using the git_command setting for the Git plugin\n\nPATH is: %s" % os.environ['PATH']
             else:
-                raise e
+                output = e.strerror
+        finally:
+            commands_working = commands_working - 1
+            main_thread(callback, output, **self.kwargs)
 
 class GitScratchOutputCommand(sublime_plugin.TextCommand):
     def run(self, edit, output = '', output_file = None, clear = False):
@@ -207,13 +216,22 @@ class GitCommand(object):
     may_change_files = False
 
     def run_command(self, command, callback=None, show_status=True,
-            filter_empty_args=True, no_save=False, **kwargs):
+            filter_empty_args=True, no_save=False, wait_for_lock=True, **kwargs):
         if filter_empty_args:
             command = [arg for arg in command if arg]
         if 'working_dir' not in kwargs:
             kwargs['working_dir'] = self.get_working_dir()
         if 'fallback_encoding' not in kwargs and self.active_view() and self.active_view().settings().get('fallback_encoding'):
             kwargs['fallback_encoding'] = self.active_view().settings().get('fallback_encoding').rpartition('(')[2].rpartition(')')[0]
+
+        root = git_root(self.get_working_dir())
+        if wait_for_lock and root and os.path.exists(os.path.join(root, '.git', 'index.lock')):
+            print("waiting for index.lock", command)
+            do_when(lambda: not os.path.exists(os.path.join(root, '.git', 'index.lock')),
+                    self.run_command, command, callback=callback,
+                    show_status=show_status, filter_empty_args=filter_empty_args,
+                    no_save=no_save, wait_for_lock=wait_for_lock, **kwargs)
+            return
 
         s = sublime.load_settings("Git.sublime-settings")
         if s.get('save_first') and self.active_view() and self.active_view().is_dirty() and not no_save:
