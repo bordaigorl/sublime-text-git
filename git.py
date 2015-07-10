@@ -376,7 +376,13 @@ class GitTextCommand(GitCommand, sublime_plugin.TextCommand):
         return file_name.replace('\\', '/')  # windows issues
 
     def get_working_dir(self):
-        return os.path.realpath(os.path.dirname(self.view.file_name()))
+        if self.view and self.view.file_name():
+            file_name = self.view.file_name()
+        elif self.active_view() and self.active_view().file_name():
+            file_name = self.active_view().file_name()
+        else:
+            return ''
+        return os.path.realpath(os.path.dirname(file_name))
 
     def get_window(self):
         # Fun discovery: if you switch tabs while a command is working,
