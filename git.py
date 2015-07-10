@@ -71,10 +71,15 @@ def plugin_file(name):
     return PLUGIN_DIRECTORY + '/' + name
 
 
+# def do_when(conditional, command, *args, **kwargs):
+#     if conditional():
+#         return command(*args, **kwargs)
+#     sublime.set_timeout(functools.partial(do_when, conditional, command, *args, **kwargs), 50)
 def do_when(conditional, command, *args, **kwargs):
     if conditional():
         return command(*args, **kwargs)
-    sublime.set_timeout(functools.partial(do_when, conditional, command, *args, **kwargs), 50)
+    sublime.set_timeout(lambda: command(*args, **kwargs), 500)
+    # sublime.set_timeout(functools.partial(do_when, conditional, command, *args, **kwargs), 50)
 
 
 def goto_xy(view, line, col):
