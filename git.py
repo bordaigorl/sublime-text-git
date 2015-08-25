@@ -396,7 +396,9 @@ class GitCustomCommand(GitWindowCommand):
             self.panel("No git command provided")
             return
         import shlex
-        command_splitted = ['git'] + shlex.split(command)
+        command_splitted = shlex.split(command)
+        if command_splitted[0] != "git":
+            command_splitted = ['git'] + command_splitted
         print(command_splitted)
         self.run_command(command_splitted)
 
