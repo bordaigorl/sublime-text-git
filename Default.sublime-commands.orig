@@ -186,6 +186,9 @@
         "command": "git_custom"
     }
     ,{
+<<<<<<< HEAD
+        "caption": "Git Flow: Feature Start", 
+=======
         "caption": "Git: Remote Add",
         "command": "git_remote_add"
     }
@@ -198,7 +201,8 @@
         "command": "git_remote_show"
     }
     ,{
-        "caption": "Git Flow: Feature Start", 
+        "caption": "Git Flow: Feature Start",
+>>>>>>> e397acc... add git remote add/rm/show command
         "command": "git_flow_feature_start"
     }
     ,{
