@@ -82,7 +82,7 @@ class GitAddSelectedHunkCommand(GitTextCommand):
 
         if selection_is_hunky:
             self.run_command(['git', 'apply', '--cached'], stdin=diffs)
-            self.active_view().run_command('hl_changes')
+            sublime.set_timeout(lambda: self.active_view().run_command('hl_changes'), 500)
         else:
             sublime.status_message("No selected hunk")
 
@@ -95,7 +95,7 @@ class GitResetHead(object):
         self.run_command(['git', 'reset', 'HEAD', self.get_file_name()])
 
     def generic_done(self, result):
-        self.active_view().run_command('hl_changes')
+        sublime.set_timeout(lambda: self.active_view().run_command('hl_changes'), 500)
 
 class GitResetHeadCommand(GitResetHead, GitTextCommand):
     pass
