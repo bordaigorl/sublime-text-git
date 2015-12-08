@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-#coding:utf-8
-# Author        : tuxpy
-# Email         : q8886888@qq.com.com
-# Last modified : 2015-08-28 00:48:42
-# Filename      : remote.py
-# Description   : 
 import sublime
-from git import GitWindowCommand
+from .git import GitWindowCommand
 
 class GitRemoteCommand(GitWindowCommand):
-    def is_enabled(self):
-        return True
 
     def list_remote(self):
         self.run_command(['git', 'remote', '-v'], self.show_remote)
