@@ -46,6 +46,12 @@ class GitRemoteRemoveCommand(GitRemoteCommand):
 
 
 class GitRemoteShowCommand(GitRemoteCommand):
+
     def run(self):
         self.list_remote()
 
+    def panel_done(self, picked):
+        if picked >= len(self.results) or picked < 0:
+            return
+        remote = self.results[picked]
+        self.run_command(['git', 'remote' , 'show', remote[0]])
