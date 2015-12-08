@@ -18,18 +18,21 @@ class GitRemoteCommand(GitWindowCommand):
     def panel_done(self, picked):
         print(picked)
 
+
 class GitRemoteAddCommand(GitRemoteCommand):
     def run(self):
-        self.get_window().show_input_panel('Remote Name:Url', '', self.remote_add, None, None)
+        v = self.get_window().show_input_panel('Remote', '', self.remote_add, None, None)
+        v.run_command("insert_snippet", {"contents": "${1:name} ${2:url}"})
 
     def remote_add(self, remote_string):
-        if ':' not in remote_string:
-            sublime.status_message('Usage remote_name:remote_url')
+        if ' ' not in remote_string:
+            sublime.status_message('Usage remote_name remote_url')
             return
 
-        remote_params = [ param.strip() for param in remote_string.split(':', 1)]
+        remote_params = [ param.strip() for param in remote_string.split(' ', 1)]
 
         self.run_command(['git', 'remote', 'add'] + remote_params)
+
 
 class GitRemoteRemoveCommand(GitRemoteCommand):
     def run(self):
@@ -41,7 +44,8 @@ class GitRemoteRemoveCommand(GitRemoteCommand):
         remote = self.results[picked]
         self.run_command(['git', 'remote' , 'rm', remote[0]])
 
+
 class GitRemoteShowCommand(GitRemoteCommand):
     def run(self):
         self.list_remote()
-    
+
