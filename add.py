@@ -14,6 +14,7 @@ class GitAddChoiceCommand(GitStatusCommand):
         self.results = [
             [" + All Files", "apart from untracked files"],
             [" + All Files", "including untracked files"],
+            [" » Commit", "commit staged files"],
         ] + [[a, ''] for a in self.results]
         return super(GitAddChoiceCommand, self).show_status_list()
 
@@ -24,6 +25,10 @@ class GitAddChoiceCommand(GitStatusCommand):
             command = ['git', 'add', '--update']
         elif picked_index == 1:
             command = ['git', 'add', '--all']
+        elif picked_index == 2:
+            print(dir(self))
+            self.window.run_command("git_commit")
+            return
         else:
             command = ['git']
             picked_file = picked_file.strip('"')
