@@ -1,26 +1,42 @@
+from __future__ import absolute_import, unicode_literals, print_function, division
+
+import codecs
 import functools
 import tempfile
 import os
 
 import sublime
 import sublime_plugin
-from .git import GitTextCommand, GitWindowCommand, plugin_file, view_contents, _make_text_safeish
+from . import GitTextCommand, GitWindowCommand, plugin_file, view_contents, _make_text_safeish
 from .add import GitAddSelectedHunkCommand
 
 history = []
 
 
 class GitQuickCommitCommand(GitTextCommand):
-    def run(self, edit):
-        self.get_window().show_input_panel("Message", "",
-            self.on_input, None, None)
+    def run(self, edit, target=None):
+        if target is None:
+            # 'target' might also be False, in which case we just don't provide an add argument
+            target = self.get_file_name()
+        self.get_window().show_input_panel(
+            "Message", "",
+            functools.partial(self.on_input, target), None, None
+        )
 
-    def on_input(self, message):
+    def on_input(self, target, message):
         if message.strip() == "":
             self.panel("No commit message provided")
             return
-        self.run_command(['git', 'add', self.get_file_name()],
-            functools.partial(self.add_done, message))
+
+        if target:
+            command = ['git', 'add']
+            if target == '*':
+                command.append('--all')
+            else:
+                command.extend(('--', target))
+            self.run_command(command, functools.partial(self.add_done, message))
+        else:
+            self.add_done(message, "")
 
     def add_done(self, message, result):
         if result.strip():
@@ -82,6 +98,7 @@ class GitCommitCommand(GitWindowCommand):
     def diff_done(self, result):
         settings = sublime.load_settings("Git.sublime-settings")
         historySize = settings.get('history_size')
+        rulers = settings.get('commit_rulers')
 
         def format(line):
             return '# ' + line.replace("\n", " ")
@@ -101,6 +118,10 @@ class GitCommitCommand(GitWindowCommand):
         msg = self.window.new_file()
         msg.set_scratch(True)
         msg.set_name("COMMIT_EDITMSG")
+
+        if rulers:
+            msg.settings().set('rulers', rulers)
+
         self._output_to_view(msg, template, syntax=plugin_file("syntax/Git Commit Message.tmLanguage"))
         msg.sel().clear()
         msg.sel().add(sublime.Region(0, 0))
@@ -110,8 +131,10 @@ class GitCommitCommand(GitWindowCommand):
         # filter out the comments (git commit doesn't do this automatically)
         settings = sublime.load_settings("Git.sublime-settings")
         historySize = settings.get('history_size')
-        lines = [line for line in message.split("\n# --------------")[0].split("\n")
-            if not line.lstrip().startswith('#')]
+        lines = [
+            line for line in message.split("\n# --------------")[0].split("\n")
+            if not line.lstrip().startswith('#')
+        ]
         message = '\n'.join(lines).strip()
 
         if len(message) and historySize:
@@ -122,9 +145,11 @@ class GitCommitCommand(GitWindowCommand):
         message_file.close()
         self.message_file = message_file
         # and actually commit
-        with open(message_file.name, 'r') as fp:
-            self.run_command(['git', 'commit', '-F', '-', self.extra_options],
-                self.commit_done, working_dir=self.working_dir, stdin=fp.read())
+        with codecs.open(message_file.name, mode='r', encoding='utf-8') as fp:
+            self.run_command(
+                ['git', 'commit', '-F', '-', self.extra_options],
+                self.commit_done, working_dir=self.working_dir, stdin=fp.read()
+            )
 
     def commit_done(self, result, **kwargs):
         os.remove(self.message_file.name)
@@ -169,6 +194,6 @@ class GitCommitHistoryCommand(sublime_plugin.TextCommand):
 
 
 class GitCommitSelectedHunk(GitAddSelectedHunkCommand):
-    def run(self, edit):
-        self.run_command(['git', 'diff', '--no-color', self.get_file_name()], self.cull_diff)
+    def cull_diff(self, result):
+        super(GitCommitSelectedHunk, self).cull_diff(result)
         self.get_window().run_command('git_commit')

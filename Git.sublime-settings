@@ -6,6 +6,10 @@
 	// e.g. "/Users/kemayo/bin/git" or "C:\bin\git.exe"
 	,"git_command": false
 
+	// if present, use this command instead of plain "gitk"
+	// e.g. "/Users/kemayo/bin/gitk" or "C:\bin\gitk.exe"
+	,"gitk_command": false
+
 	// point this the installation location of git-flow
 	,"git_flow_command": "/usr/local/bin/git-flow"
 
@@ -26,6 +30,9 @@
 	// Show git flow commands
 	,"flow": false
 
+	// By default git flow release and hotfix will tag a version. Set to true to disable.
+	,"flow-notag": false
+
 	// Annotations default to being on for all files. Can be slow in some cases.
 	,"annotations": false
 
@@ -33,8 +40,15 @@
 	,"statusbar_branch": true
 	// Symbols for quick git status in status bar
 	,"statusbar_status": true
-	,"statusbar_status_symbols" : {"modified": "≠", "added": "+", "deleted": "×", "untracked": "?", "conflicts": "‼", "renamed":"R", "copied":"C", "clean": "√", "separator": " "}
+	,"statusbar_status_symbols" : {"modified": "≠", "added": "+", "deleted": "×", "untracked": "?", "conflicts": "‼", "renamed":"R", "copied":"C", "clean": "✓", "separator": " "}
 
 	// e.g. "Packages/Git/syntax/Git Commit Message.tmLanguage"
 	,"diff_syntax": "Packages/Diff/Diff.tmLanguage"
+
+	// Rulers for commit view
+	,"commit_rulers": [70]
+
+	// Watch for gitignore changes?
+	// When found, import them. This will hide the ignored files from the sidebar.
+	,"gitignore_sync": false
 }

@@ -1,8 +1,10 @@
+from __future__ import absolute_import, unicode_literals, print_function, division
+
 import os
 import re
 
 import sublime
-from .git import GitTextCommand, GitWindowCommand, git_root
+from . import GitTextCommand, GitWindowCommand, git_root
 from .status import GitStatusCommand
 
 
@@ -38,8 +40,10 @@ class GitAddChoiceCommand(GitStatusCommand):
                 command += ['rm']
             command += ['--', picked_file]
 
-        self.run_command(command, self.rerun,
-            working_dir=working_dir)
+        self.run_command(
+            command, self.rerun,
+            working_dir=working_dir
+        )
 
     def rerun(self, result):
         self.run()

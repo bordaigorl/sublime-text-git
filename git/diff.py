@@ -1,8 +1,10 @@
+from __future__ import absolute_import, unicode_literals, print_function, division
+
 import sublime
 import sublime_plugin
 import os
 import re
-from .git import git_root, GitTextCommand, GitWindowCommand, do_when, goto_xy
+from . import GitTextCommand, GitWindowCommand, do_when, goto_xy, git_root, get_open_folder_from_window
 
 
 class GitDiff (object):
@@ -20,13 +22,9 @@ class GitDiff (object):
         s = sublime.load_settings("Git.sublime-settings")
         syntax = s.get("diff_syntax", "Packages/Diff/Diff.tmLanguage")
         if s.get('diff_panel'):
-            view = self.panel(result, syntax=syntax)
+            self.panel(result, syntax=syntax)
         else:
-            view = self.scratch(result, title="Git Diff", syntax=syntax)
-
-        # Store the git root directory in the view so we can resolve relative paths
-        # when the user wants to navigate to the source file.
-        view.settings().set("git_root_dir", git_root(self.get_working_dir()))
+            self.scratch(result, title="Git Diff", syntax=syntax)
 
 
 class GitDiffCommit (object):
@@ -126,6 +124,10 @@ class GitGotoDiff(sublime_plugin.TextCommand):
         self.goto_line = int(hunk_start_line) + line_offset - 1
 
         git_root_dir = v.settings().get("git_root_dir")
+        # See if we can get the git root directory if we haven't saved it yet
+        if not git_root_dir:
+            working_dir = get_open_folder_from_window(v.window())
+            git_root_dir = git_root(working_dir) if working_dir else None
 
         # Sanity check and see if the file we're going to try to open even
         # exists. If it does not, prompt the user for the correct base directory
