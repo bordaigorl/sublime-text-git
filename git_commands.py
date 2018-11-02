@@ -35,6 +35,7 @@ mods_load_order = [
     '.history',
     '.ignore',
     '.repo',
+    '.remote',
     '.stash',
     '.statusbar',
     '.flow',
@@ -69,6 +70,7 @@ try:
     from .git.file import *  # noqa
     from .git.ignore import *  # noqa
     from .git.repo import *  # noqa
+    from .git.remote import *  # noqa
     from .git.stash import *  # noqa
     from .git.status import *  # noqa
     from .git.statusbar import *  # noqa
@@ -87,6 +89,7 @@ except (ImportError, ValueError):
     from git.file import *  # noqa
     from git.ignore import *  # noqa
     from git.repo import *  # noqa
+    from git.remote import *  # noqa
     from git.stash import *  # noqa
     from git.status import *  # noqa
     from git.statusbar import *  # noqa

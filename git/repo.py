@@ -3,7 +3,7 @@ from __future__ import absolute_import, unicode_literals, print_function, divisi
 import os
 
 import sublime
-from . import GitWindowCommand, git_root_exist
+from . import GitWindowCommand, git_root, git_root_exist
 
 
 class GitInit(object):
